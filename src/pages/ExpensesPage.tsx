@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ExpensesChart from '@/components/expenses/ExpensesChart';
+import CategoryBreakdown from '@/components/expenses/CategoryBreakdown';
 import TransactionList from '@/components/expenses/TransactionList';
 import { getTotalExpenses } from '@/lib/expenseUtils';
 
@@ -14,6 +15,10 @@ const ExpensesPage: React.FC = () => {
         <div className="text-4xl md:text-5xl font-bold text-finance-chart animate-pulse-glow">
           ${totalExpenses}
         </div>
+      </div>
+      
+      <div className="mb-6">
+        <CategoryBreakdown />
       </div>
       
       <div className="mb-6">

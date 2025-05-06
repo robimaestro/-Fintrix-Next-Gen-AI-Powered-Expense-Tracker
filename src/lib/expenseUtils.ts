@@ -45,6 +45,12 @@ export type MonthlyExpenses = {
   total: number;
 }
 
+export type CategoryExpense = {
+  category: string;
+  amount: number;
+  percentage: number;
+}
+
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return format(date, 'MMM dd, yyyy');
@@ -94,3 +100,23 @@ export const getCategoryIcon = (category: string) => {
 export const getTotalExpenses = (): number => {
   return expenses.reduce((sum, expense) => sum + expense.amount, 0);
 };
+
+export const getCategoryExpenses = (): CategoryExpense[] => {
+  const categoryMap = new Map<string, number>();
+  
+  expenses.forEach(expense => {
+    const currentTotal = categoryMap.get(expense.category) || 0;
+    categoryMap.set(expense.category, currentTotal + expense.amount);
+  });
+  
+  const totalExpenses = getTotalExpenses();
+  
+  return Array.from(categoryMap.entries())
+    .map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: Math.round((amount / totalExpenses) * 100)
+    }))
+    .sort((a, b) => b.amount - a.amount);
+};
+
