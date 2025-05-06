@@ -41,6 +41,8 @@ const AssistantPage: React.FC = () => {
     setIsLoading(true);
     
     try {
+      console.log('Sending request to API:', userMessage);
+      
       const response = await fetch('https://maestro007.app.n8n.cloud/webhook-test/d9f82c89-602e-4245-a833-5ee896a6c2aa', {
         method: 'POST',
         headers: {
@@ -52,15 +54,16 @@ const AssistantPage: React.FC = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to get response from assistant');
+        throw new Error(`Failed to get response from assistant: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('Response from API:', data);
       
-      // Add bot response to chat
+      // Add bot response to chat - using direct data if available
       setTimeout(() => {
         setMessages(prev => [...prev, { 
-          text: data.message || "I'm sorry, I couldn't process your request.", 
+          text: data.message || data.response || data.answer || data.reply || data.text || "I'm sorry, I couldn't process your request.", 
           isUser: false 
         }]);
         setIsLoading(false);
