@@ -60,10 +60,10 @@ const AssistantPage: React.FC = () => {
       const data = await response.json();
       console.log('Response from API:', data);
       
-      // Add bot response to chat - using direct data if available
+      // Add bot response to chat - prioritizing the output property as specified
       setTimeout(() => {
         setMessages(prev => [...prev, { 
-          text: data.message || data.response || data.answer || data.reply || data.text || "I'm sorry, I couldn't process your request.", 
+          text: data.output || data.message || data.response || data.answer || data.reply || data.text || "I'm sorry, I couldn't process your request.", 
           isUser: false 
         }]);
         setIsLoading(false);
