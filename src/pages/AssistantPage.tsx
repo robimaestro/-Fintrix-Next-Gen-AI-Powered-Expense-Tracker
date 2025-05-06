@@ -12,6 +12,25 @@ interface Message {
   isUser: boolean;
 }
 
+// Mock responses for when API is unavailable
+const mockResponses = [
+  "Based on your spending patterns, your highest category of expenses is dining out, followed by transportation and entertainment.",
+  "You've spent approximately 30% of your budget on housing, 20% on food, 15% on transportation, and the rest on miscellaneous expenses.",
+  "Looking at your recent transactions, you might want to consider reducing spending in the entertainment category, which has increased by 15% from last month.",
+  "Your spending in groceries this month is lower compared to last month, good job on the savings!",
+  "Based on your current spending rate, you're on track to meet your monthly budget goals."
+];
+
+const getRandomResponse = (query: string) => {
+  // Simple keyword matching for better responses
+  if (query.toLowerCase().includes('category') || query.toLowerCase().includes('spend per')) {
+    return "Your top spending categories are: Housing (35%), Food (25%), Transportation (15%), Entertainment (10%), and Others (15%).";
+  }
+  
+  // Return a random response for other queries
+  return mockResponses[Math.floor(Math.random() * mockResponses.length)];
+};
+
 const AssistantPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     { text: "Hello! I'm your finance assistant. Ask me anything about your spending patterns or financial habits.", isUser: false }
@@ -43,6 +62,7 @@ const AssistantPage: React.FC = () => {
     try {
       console.log('Sending request to API:', userMessage);
       
+      // Try to call the external API
       const response = await fetch('https://maestro007.app.n8n.cloud/webhook-test/d9f82c89-602e-4245-a833-5ee896a6c2aa', {
         method: 'POST',
         headers: {
@@ -51,10 +71,15 @@ const AssistantPage: React.FC = () => {
         body: JSON.stringify({
           message: userMessage
         }),
+        // Add a reasonable timeout to avoid waiting too long
+        signal: AbortSignal.timeout(5000)
       });
       
       if (!response.ok) {
-        throw new Error(`Failed to get response from assistant: ${response.status}`);
+        // Log the error details
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`API error: ${response.status}`);
       }
       
       const data = await response.json();
@@ -71,14 +96,22 @@ const AssistantPage: React.FC = () => {
       
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Failed to connect to the assistant');
-      setIsLoading(false);
       
-      // Add error message
-      setMessages(prev => [...prev, { 
-        text: "Sorry, I'm having trouble connecting right now. Please try again later.", 
-        isUser: false 
-      }]);
+      // Use a simulated response instead of showing an error message
+      const simulatedResponse = getRandomResponse(userMessage);
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, { 
+          text: simulatedResponse,
+          isUser: false 
+        }]);
+        setIsLoading(false);
+        
+        // Show a small toast notification that we're using simulated data
+        toast.info("Using simulated responses - API connection unavailable", {
+          duration: 3000,
+        });
+      }, 1000);
     }
   };
   
