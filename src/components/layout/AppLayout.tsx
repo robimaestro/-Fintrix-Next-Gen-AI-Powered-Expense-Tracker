@@ -1,7 +1,7 @@
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { PieChart, MessageSquare } from 'lucide-react';
+import { PieChart, MessageSquare, Bitcoin } from 'lucide-react';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -14,7 +14,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         {children}
       </main>
       <nav className="bg-black/40 backdrop-blur-sm border-t border-white/10 p-4">
-        <div className="container mx-auto flex justify-center gap-16">
+        <div className="container mx-auto flex justify-center gap-10">
           <NavLink 
             to="/" 
             className={({isActive}) => 
@@ -23,6 +23,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           >
             <PieChart className="h-6 w-6" />
             <span className="text-xs">Expenses</span>
+          </NavLink>
+          <NavLink 
+            to="/crypto" 
+            className={({isActive}) => 
+              `flex flex-col items-center gap-1 ${isActive ? 'text-finance-chart' : 'text-finance-gray'} hover:text-finance-chart transition-colors`
+            }
+          >
+            <Bitcoin className="h-6 w-6" />
+            <span className="text-xs">Crypto</span>
           </NavLink>
           <NavLink 
             to="/assistant" 
