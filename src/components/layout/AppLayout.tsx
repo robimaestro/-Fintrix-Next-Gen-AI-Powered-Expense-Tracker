@@ -2,6 +2,7 @@
 import React, { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { PieChart, MessageSquare, Bitcoin } from 'lucide-react';
+import Logo from './Logo';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -10,6 +11,11 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-finance-dark">
+      <header className="bg-black/40 backdrop-blur-sm border-b border-white/10 p-4">
+        <div className="container mx-auto flex justify-between items-center">
+          <Logo />
+        </div>
+      </header>
       <main className="flex-1 overflow-hidden">
         {children}
       </main>
