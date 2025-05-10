@@ -3,6 +3,7 @@ import React from 'react';
 import ExpensesChart from '@/components/expenses/ExpensesChart';
 import CategoryBreakdown from '@/components/expenses/CategoryBreakdown';
 import TransactionList from '@/components/expenses/TransactionList';
+import SpendingSummary from '@/components/expenses/SpendingSummary';
 import { getTotalExpenses } from '@/lib/expenseUtils';
 
 const ExpensesPage: React.FC = () => {
@@ -16,6 +17,8 @@ const ExpensesPage: React.FC = () => {
           Welcome to Fintrix – the next-gen AI-powered expense tracker. Analyze your finances, get smart summaries, and make better decisions — no coding or spreadsheets required.
         </p>
       </div>
+      
+      <SpendingSummary />
       
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-1">Total Spending</h1>
