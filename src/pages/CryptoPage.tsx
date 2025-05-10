@@ -10,7 +10,9 @@ import {
   Eye, 
   EyeOff,
   Bitcoin,
-  ChevronRight
+  ChevronRight,
+  BarChart3,
+  Info
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -19,7 +21,9 @@ import {
   YAxis, 
   Tooltip, 
   ResponsiveContainer, 
-  ReferenceLine 
+  ReferenceLine,
+  Area,
+  AreaChart
 } from 'recharts';
 import {
   Tabs,
@@ -28,6 +32,7 @@ import {
 } from "@/components/ui/tabs";
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import { Badge } from "@/components/ui/badge";
 
 interface CryptoAsset {
   id: string;
@@ -36,7 +41,7 @@ interface CryptoAsset {
   amount: number;
   value: number;
   change: number;
-  stakingAvailable?: boolean;
+  allocation: number;
   icon?: React.ReactNode;
 }
 
@@ -48,7 +53,7 @@ const initialCryptoData: CryptoAsset[] = [
     amount: 0.25,
     value: 12500,
     change: 2.4,
-    stakingAvailable: false,
+    allocation: 51,
     icon: <Bitcoin className="h-6 w-6 text-orange-500" />
   },
   {
@@ -58,7 +63,7 @@ const initialCryptoData: CryptoAsset[] = [
     amount: 3.5,
     value: 7350,
     change: -1.2,
-    stakingAvailable: true,
+    allocation: 30,
     icon: <svg className="h-6 w-6 text-purple-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 2L4.5 12.5L12 16.5L19.5 12.5L12 2Z" fill="currentColor" />
       <path d="M12 16.5V22L19.5 12.5L12 16.5Z" fill="currentColor" opacity="0.6" />
@@ -72,7 +77,7 @@ const initialCryptoData: CryptoAsset[] = [
     amount: 45,
     value: 4275,
     change: 5.7,
-    stakingAvailable: true,
+    allocation: 19,
     icon: <svg className="h-6 w-6 text-green-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M6 14.5L16 8.5M6 8.5H16L18 10.5L16 12.5H6L4 10.5L6 8.5Z" stroke="currentColor" strokeWidth="2" />
       <path d="M6 16.5H16L18 14.5L16 12.5" stroke="currentColor" strokeWidth="2" />
@@ -97,6 +102,27 @@ const chartData = [
   { date: 'May 14', value: 2745 },
 ];
 
+const financeTips = [
+  {
+    id: '1',
+    title: 'Portfolio Rebalancing',
+    description: 'SOL has gained 5.7% this week — consider rebalancing your portfolio allocation.',
+    category: 'optimization'
+  },
+  {
+    id: '2',
+    title: 'Market Insight',
+    description: 'Your portfolio has outperformed BTC by 3.2% this month. Consider maintaining your current strategy.',
+    category: 'performance'
+  },
+  {
+    id: '3',
+    title: 'Risk Management',
+    description: 'Your portfolio volatility is higher than average. Consider diversifying with some stablecoins.',
+    category: 'risk'
+  }
+];
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -107,6 +133,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
+};
+
+const getPerformanceIndicator = (value: number) => {
+  if (value === 0) return 'neutral';
+  return value > 0 ? 'positive' : 'negative';
 };
 
 const CryptoPage: React.FC = () => {
@@ -123,6 +154,8 @@ const CryptoPage: React.FC = () => {
 
   const totalPortfolioValue = cryptoAssets.reduce((total, asset) => total + asset.value, 0);
   const dailyChangePercent = 1.59; // Hardcoded for demo
+  const weeklyChangePercent = 2.84; // Hardcoded for demo
+  const monthlyChangePercent = -0.92; // Hardcoded for demo
 
   const handleAddAsset = () => {
     if (!newAsset.name || !newAsset.symbol || !newAsset.amount || !newAsset.value) {
@@ -148,6 +181,7 @@ const CryptoPage: React.FC = () => {
         amount,
         value,
         change: 0,
+        allocation: Math.round((value / (totalPortfolioValue + value)) * 100),
         icon: <Bitcoin className="h-6 w-6 text-gray-400" />
       }
     ]);
@@ -163,16 +197,12 @@ const CryptoPage: React.FC = () => {
     toast.success("Crypto asset added successfully");
   };
 
-  const handleStartStaking = (assetName: string) => {
-    toast.success(`Started staking process for ${assetName}`);
-  };
-
   return (
-    <div className="container mx-auto px-4 py-6 max-w-md">
-      {/* Header Section */}
-      <div className="mb-6">
+    <div className="container mx-auto px-4 py-6 max-w-4xl">
+      {/* Header Section - Summary Card */}
+      <div className="bg-black/30 rounded-xl p-6 mb-6 border border-white/10">
         <div className="flex justify-between items-center mb-2">
-          <h1 className="text-2xl font-bold">Investments Overview</h1>
+          <h1 className="text-2xl font-bold text-finance-chart">Investments Overview</h1>
           <button 
             onClick={() => setHideValue(!hideValue)} 
             className="text-finance-gray hover:text-finance-chart transition-colors"
@@ -181,60 +211,130 @@ const CryptoPage: React.FC = () => {
           </button>
         </div>
         
-        <div className="flex items-center">
-          <div className="text-3xl md:text-4xl font-bold text-finance-chart">
-            {hideValue ? '••••••' : `€${totalPortfolioValue.toLocaleString()}`}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="text-3xl md:text-4xl font-bold text-finance-chart">
+              {hideValue ? '••••••' : `€${totalPortfolioValue.toLocaleString()}`}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <div className={`flex items-center text-sm px-2 py-1 rounded-full ${dailyChangePercent >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                {dailyChangePercent >= 0 ? (
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                )}
+                <span>{dailyChangePercent}% 1D</span>
+              </div>
+              <div className={`flex items-center text-sm px-2 py-1 rounded-full ${weeklyChangePercent >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                {weeklyChangePercent >= 0 ? (
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                )}
+                <span>{weeklyChangePercent}% 7D</span>
+              </div>
+              <div className={`flex items-center text-sm px-2 py-1 rounded-full ${monthlyChangePercent >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                {monthlyChangePercent >= 0 ? (
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 mr-1" />
+                )}
+                <span>{monthlyChangePercent}% 30D</span>
+              </div>
+            </div>
           </div>
-          <div className={`ml-3 flex items-center text-sm px-2 py-1 rounded-full ${dailyChangePercent >= 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
-            {dailyChangePercent >= 0 ? (
-              <TrendingUp className="h-3 w-3 mr-1" />
-            ) : (
-              <TrendingDown className="h-3 w-3 mr-1" />
-            )}
-            <span>{dailyChangePercent}% in 1 day</span>
+          
+          <div className="mt-4 md:mt-0 flex items-center gap-2">
+            <div className="bg-finance-accent/20 p-2 rounded-full">
+              <BarChart3 className="h-5 w-5 text-finance-accent" />
+            </div>
+            <div className="text-sm text-finance-gray">
+              <div className="font-semibold text-white">Portfolio Allocation</div>
+              <div>Diversified across {cryptoAssets.length} assets</div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Chart Section */}
-      <Card className="bg-black/40 border-white/10 text-white mb-6">
+      {/* Chart Section - Interactive Performance Chart */}
+      <Card className="bg-black/40 border-white/10 text-white mb-6 overflow-hidden">
+        <CardHeader className="pb-0 pt-6">
+          <CardTitle className="text-lg text-finance-chart">Performance</CardTitle>
+        </CardHeader>
         <CardContent className="p-4">
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-              >
-                <XAxis 
-                  dataKey="date" 
-                  hide={true}
-                />
-                <YAxis 
-                  domain={['dataMin - 20', 'dataMax + 20']}
-                  hide={true}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <ReferenceLine
-                  y={chartData[chartData.length - 1].value}
-                  stroke="#FFFFFF"
-                  strokeDasharray="3 3"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#0FA0CE"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ 
-                    stroke: '#0FA0CE', 
-                    strokeWidth: 2, 
-                    r: 6, 
-                    fill: '#0FA0CE',
-                    className: 'animate-pulse-glow'
-                  }}
-                  className="chart-line"
-                />
-              </LineChart>
+              {timeRange === '1D' || timeRange === '7D' ? (
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                >
+                  <XAxis 
+                    dataKey="date" 
+                    hide={true}
+                  />
+                  <YAxis 
+                    domain={['dataMin - 20', 'dataMax + 20']}
+                    hide={true}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <ReferenceLine
+                    y={chartData[chartData.length - 1].value}
+                    stroke="#FFFFFF"
+                    strokeDasharray="3 3"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#0FA0CE"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ 
+                      stroke: '#0FA0CE', 
+                      strokeWidth: 2, 
+                      r: 6, 
+                      fill: '#0FA0CE',
+                      className: 'animate-pulse-glow'
+                    }}
+                    className="chart-line"
+                  />
+                </LineChart>
+              ) : (
+                <AreaChart
+                  data={chartData}
+                  margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                >
+                  <XAxis 
+                    dataKey="date" 
+                    hide={true}
+                  />
+                  <YAxis 
+                    domain={['dataMin - 20', 'dataMax + 20']}
+                    hide={true}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <defs>
+                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0FA0CE" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#0FA0CE" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#0FA0CE" 
+                    strokeWidth={2}
+                    fill="url(#colorValue)"
+                    activeDot={{ 
+                      stroke: '#0FA0CE', 
+                      strokeWidth: 2, 
+                      r: 6, 
+                      fill: '#0FA0CE',
+                      className: 'animate-pulse-glow'
+                    }}
+                  />
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           </div>
           
@@ -248,15 +348,18 @@ const CryptoPage: React.FC = () => {
               <TabsTrigger value="1D" className="data-[state=active]:bg-finance-chart data-[state=active]:text-black">1D</TabsTrigger>
               <TabsTrigger value="7D" className="data-[state=active]:bg-finance-chart data-[state=active]:text-black">7D</TabsTrigger>
               <TabsTrigger value="30D" className="data-[state=active]:bg-finance-chart data-[state=active]:text-black">30D</TabsTrigger>
-              <TabsTrigger value="1A" className="data-[state=active]:bg-finance-chart data-[state=active]:text-black">1A</TabsTrigger>
+              <TabsTrigger value="1Y" className="data-[state=active]:bg-finance-chart data-[state=active]:text-black">1Y</TabsTrigger>
             </TabsList>
           </Tabs>
         </CardContent>
       </Card>
 
-      {/* Asset List */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold text-white">Assets</h2>
+      {/* Asset List - Individual Asset Cards */}
+      <div className="space-y-4 mb-8">
+        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <Bitcoin className="h-5 w-5 text-finance-chart" />
+          Asset Allocation
+        </h2>
         
         {cryptoAssets.map((asset) => (
           <Card 
@@ -292,29 +395,18 @@ const CryptoPage: React.FC = () => {
                 </div>
               </div>
               
-              {/* Mini trendline visualization */}
-              <div className="mt-3 h-1 bg-gray-800 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${asset.change >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
-                  style={{ width: `${Math.min(Math.abs(asset.change) * 5, 100)}%` }}
-                ></div>
-              </div>
-              
-              {asset.stakingAvailable && (
-                <div className="mt-3 flex justify-between items-center">
-                  <span className="text-xs text-finance-gray">
-                    Earn {(Math.random() * 5 + 1).toFixed(2)}% per year
-                  </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-finance-chart hover:bg-finance-chart/10"
-                    onClick={() => handleStartStaking(asset.name)}
-                  >
-                    Start Staking
-                  </Button>
+              {/* Allocation visualization */}
+              <div className="mt-3">
+                <div className="flex justify-between items-center text-xs mb-1">
+                  <span className="text-finance-gray">Allocation</span>
+                  <span className="font-medium">{asset.allocation}%</span>
                 </div>
-              )}
+                <Progress 
+                  value={asset.allocation} 
+                  className="h-2 bg-white/10" 
+                  indicatorClassName={`bg-gradient-to-r from-finance-chart to-finance-accent`}
+                />
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -325,6 +417,49 @@ const CryptoPage: React.FC = () => {
         >
           <span className="mr-1">+</span> Add New Asset
         </Button>
+      </div>
+
+      {/* Smart Finance Tips */}
+      <div className="space-y-4 mb-6">
+        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <Info className="h-5 w-5 text-finance-chart" />
+          Smart Finance Tips
+        </h2>
+        
+        {financeTips.map((tip) => {
+          const categoryStyles = {
+            'optimization': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+            'performance': 'bg-green-500/20 text-green-400 border-green-500/30',
+            'risk': 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+          }[tip.category];
+          
+          return (
+            <Card key={tip.id} className="border-white/10 bg-black/30">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex gap-3">
+                    <div className={`p-2 rounded-full ${tip.category === 'optimization' ? 'bg-blue-500/20' : tip.category === 'performance' ? 'bg-green-500/20' : 'bg-amber-500/20'}`}>
+                      {tip.category === 'optimization' ? (
+                        <BarChart3 className={`h-5 w-5 ${tip.category === 'optimization' ? 'text-blue-400' : tip.category === 'performance' ? 'text-green-400' : 'text-amber-400'}`} />
+                      ) : tip.category === 'performance' ? (
+                        <TrendingUp className="h-5 w-5 text-green-400" />
+                      ) : (
+                        <Info className="h-5 w-5 text-amber-400" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold">{tip.title}</h3>
+                      <p className="text-sm text-finance-gray">{tip.description}</p>
+                    </div>
+                  </div>
+                  <Badge className={categoryStyles}>
+                    {tip.category}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Add Asset Form Modal */}
@@ -371,7 +506,7 @@ const CryptoPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="value">Value ($)</Label>
+                  <Label htmlFor="value">Value (€)</Label>
                   <Input 
                     id="value" 
                     type="number" 
