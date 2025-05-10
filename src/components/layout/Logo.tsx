@@ -13,7 +13,7 @@ const Logo: React.FC<LogoProps> = ({
         backgroundColor: 'transparent'
       }} src="/lovable-uploads/2896e87b-2981-4719-9992-e779d11475ce.png" />
       </div>
-      <span className="ml-2 font-bold text-xl text-white">FINTRIX</span>
+      <span className="ml-2 text-xl text-white text-left px-[3px] py-0 font-extrabold">FINTRIX</span>
     </div>;
 };
 export default Logo;
