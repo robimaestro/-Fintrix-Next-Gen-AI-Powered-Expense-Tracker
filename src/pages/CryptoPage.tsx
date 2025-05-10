@@ -1,6 +1,9 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -324,7 +327,7 @@ const CryptoPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Add Asset Form Modal would go here */}
+      {/* Add Asset Form Modal */}
       {showAddForm && (
         <Card className="bg-black/40 border-white/10 text-white mb-6">
           <CardHeader>
