@@ -1,7 +1,7 @@
 
 import React, { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { PieChart, MessageSquare, Bitcoin } from 'lucide-react';
+import { PieChart, MessageSquare, Bitcoin, Heart } from 'lucide-react';
 import Logo from './Logo';
 
 interface AppLayoutProps {
@@ -38,6 +38,15 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           >
             <Bitcoin className="h-6 w-6" />
             <span className="text-xs">Crypto</span>
+          </NavLink>
+          <NavLink 
+            to="/lifestyle" 
+            className={({isActive}) => 
+              `flex flex-col items-center gap-1 ${isActive ? 'text-finance-chart' : 'text-finance-gray'} hover:text-finance-chart transition-colors`
+            }
+          >
+            <Heart className="h-6 w-6" />
+            <span className="text-xs">Lifestyle</span>
           </NavLink>
           <NavLink 
             to="/assistant" 
