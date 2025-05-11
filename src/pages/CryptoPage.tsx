@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +32,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { Badge } from "@/components/ui/badge";
+import CryptoWalletSummary from '@/components/crypto/CryptoWalletSummary';
 
 interface CryptoAsset {
   id: string;
@@ -255,6 +255,9 @@ const CryptoPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Crypto Wallet Summary */}
+      <CryptoWalletSummary />
 
       {/* Chart Section - Interactive Performance Chart */}
       <Card className="bg-black/40 border-white/10 text-white mb-6 overflow-hidden">
